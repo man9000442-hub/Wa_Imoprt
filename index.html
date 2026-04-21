@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>أرشيف محادثات الواتساب الاحترافي</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+         :root {
+            --bg-color: #efeae2;
+            --me-msg: #d9fdd3;
+            --other-msg: #ffffff;
+            --header-bg: #f0f2f5;
+            --primary: #128c7e;
+        }
+        
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #d1d7db;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            height: 100%;
+        }
+        /* تنسيق لوحة التحكم العلوية */
+        
+        .header {
+            background-color: var(--header-bg);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-bottom: 1px solid #d1d7db;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .toolbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .tools-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+        }
+        
+        input,
+        select,
+        button {
+            padding: 10px 12px;
+            /* تكبير الحجم قليلاً ليلائم اللمس في الموبايل */
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        button:hover {
+            background-color: #0d6b60;
+        }
+        
+        .nav-btn {
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .search-info {
+            font-size: 14px;
+            color: #555;
+            min-width: 60px;
+            text-align: center;
+        }
+        /* تنسيق المحادثة */
+        
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
+            background-size: contain;
+            scroll-behavior: smooth;
+        }
+        
+        .message {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message.me {
+            background-color: var(--me-msg);
+            align-self: flex-start;
+            border-top-right-radius: 0;
+        }
+        
+        .message.other {
+            background-color: var(--other-msg);
+            align-self: flex-end;
+            border-top-left-radius: 0;
+        }
+        
+        .sender-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 3px;
+            display: block;
+        }
+        
+        .me .sender-name {
+            display: none;
+        }
+        
+        .timestamp {
+            font-size: 11px;
+            color: #667781;
+            float: left;
+            margin-top: 5px;
+            margin-right: 15px;
+            direction: ltr;
+        }
+        /* تنسيق كلمات البحث */
+        
+        .highlight {
+            background-color: #ffeb3b;
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+        
+        .highlight.active {
+            background-color: #ff9800;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        #pdfBtn {
+            background-color: #d32f2f;
+            display: none;
+        }
+        
+        #pdfBtn:hover {
+            background-color: #b71c1c;
+        }
+        /* تنسيق التذييل (Footer) */
+        
+        .footer {
+            background-color: var(--header-bg);
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+            color: #555;
+            border-top: 1px solid #d1d7db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .footer a {
+            color: #e1306c;
+            /* لون إنستجرام */
+            text-decoration: none;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+        
+        .footer a:hover {
+            transform: scale(1.1);
+        }
+        
+        .dev-name {
+            font-weight: bold;
+            color: #333;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            direction: ltr;
+            /* لضبط اتجاه الاسم الإنجليزي */
+        }
+        /* تنسيق أزرار الطي */
+        
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 16px;
+        }
+        
+        .section-title:hover {
+            opacity: 0.8;
+        }
+        
+        .section-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+        
+        .section-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        .toggle-icon {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+        /* دعم الموبايل (شاشات أقل من 600px) */
+        
+        @media (max-width: 600px) {
+            .tools-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .tools-group input[type="text"],
+            .tools-group select,
+            .tools-group button {
+                width: 100%;
+            }
+            .toolbar-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            #fileInput {
+                width: 100%;
+            }
+            .nav-group {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                margin-top: 5px;
+            }
+            .nav-group button {
+                flex-grow: 1;
+                margin: 0 5px;
+            }
+            .message {
+                max-width: 90%;
+                /* تكبير عرض الرسالة في الموبايل */
+            }
+            .chat-box {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- قسم الملف والتحميل -->
+            <div class="toolbar-row">
+                <button class="section-title" onclick="toggleSection('fileSection', this)">
+            <span class="toggle-icon">▼</span>
+            <span>الملف والتحميل</span>
+          </button>
+            </div>
+            <div class="section-content" id="fileSection">
+                <input type="file" id="fileInput" accept=".txt" />
+                <button id="pdfBtn" onclick="exportToPDF()">
+            <i class="fas fa-file-pdf"></i> تحميل كـ PDF
+          </button>
+            </div>
+
+            <!-- قسم البحث -->
+            <div class="toolbar-row">
+                <button class="section-title" onclick="toggleSection('searchSection', this)">
+            <span class="toggle-icon">▼</span>
+            <span>البحث</span>
+          </button>
+            </div>
+            <div class="section-content" id="searchSection">
+                <input type="text" id="searchInput" placeholder="ابحث في الكلمات..." />
+                <button onclick="performTextSearch()">
+            <i class="fas fa-search"></i> بحث
+          </button>
+                <div class="nav-group">
+                    <span class="search-info" id="searchCount">0 / 0</span>
+                    <button class="nav-btn" onclick="navigateSearch(-1)">
+              <i class="fas fa-arrow-up"></i>
+            </button>
+                    <button class="nav-btn" onclick="navigateSearch(1)">
+              <i class="fas fa-arrow-down"></i>
+            </button>
+                </div>
+            </div>
+
+            <!-- قسم التاريخ -->
+            <div class="toolbar-row">
+                <button class="section-title" onclick="toggleSection('dateSection', this)">
+            <span class="toggle-icon">▼</span>
+            <span>الانتقال للتاريخ</span>
+          </button>
+            </div>
+            <div class="section-content" id="dateSection">
+                <select id="daySelect">
+            <option value="">اليوم</option>
+          </select>
+                <select id="monthSelect">
+            <option value="">الشهر</option>
+          </select>
+                <select id="yearSelect">
+            <option value="">السنة</option>
+          </select>
+                <button onclick="jumpToDate()">
+            <i class="far fa-calendar-alt"></i> انتقال للتاريخ
+          </button>
+            </div>
+        </div>
+
+        <div class="chat-box" id="chatBox">
+            <div style="text-align: center; color: #666; margin-top: 50px">
+                قم برفع ملف المحادثة (.txt) لتبدأ
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>Designed and Developed by</span>
+            <span class="dev-name">Abdelrahman Tarek</span>
+            <a href="https://www.instagram.com/theboda_?igsh=MTZjMGp5cWk3d3B1ag==" target="_blank" title="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let allMessages = [];
+        let senders = [];
+        let searchResults = [];
+        let currentSearchIndex = -1;
+
+        // دالة الطي/الفتح
+        function toggleSection(sectionId, button) {
+            const section = document.getElementById(sectionId);
+            const icon = button.querySelector(".toggle-icon");
+
+            section.classList.toggle("collapsed");
+            icon.classList.toggle("rotated");
+        }
+
+        // إعداد قوائم التاريخ
+        window.onload = function() {
+            const daySel = document.getElementById("daySelect");
+            const monthSel = document.getElementById("monthSelect");
+            const yearSel = document.getElementById("yearSelect");
+
+            for (let i = 1; i <= 31; i++)
+                daySel.innerHTML += `<option value="${i}">${i}</option>`;
+            for (let i = 1; i <= 12; i++)
+                monthSel.innerHTML += `<option value="${i}">${i}</option>`;
+            for (let i = 2015; i <= new Date().getFullYear() + 5; i++)
+                yearSel.innerHTML += `<option value="${i}">${i}</option>`;
+        };
+
+        // 1. قراءة الملف
+        document
+            .getElementById("fileInput")
+            .addEventListener("change", function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseWhatsAppText(e.target.result);
+                    renderMessages();
+                    document.getElementById("pdfBtn").style.display = "block";
+                };
+                reader.readAsText(file);
+            });
+
+        // 2. تحليل النص
+        function parseWhatsAppText(text) {
+            allMessages = [];
+            senders = [];
+            const lines = text.split("\n");
+            let currentMsg = null;
+
+            const regex =
+                /^\[?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})[,\]\s]+(.*?(?:AM|PM|am|pm|\u202F[AP]M)?)(?:\s*-\s*|\s*\]\s*)(.*?):\s(.*)/;
+
+            lines.forEach((line) => {
+                const match = line.match(regex);
+                if (match) {
+                    if (currentMsg) allMessages.push(currentMsg);
+                    const sender = match[3].trim();
+                    if (!senders.includes(sender)) senders.push(sender);
+
+                    currentMsg = {
+                        date: match[1].trim(),
+                        time: match[2].trim(),
+                        sender: sender,
+                        text: match[4].trim(),
+                    };
+                } else if (currentMsg && line.trim() !== "") {
+                    currentMsg.text += "\n" + line.trim();
+                }
+            });
+            if (currentMsg) allMessages.push(currentMsg);
+        }
+
+        // 3. تصيير الرسائل
+        function renderMessages(highlightText = "") {
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML = "";
+            currentSearchIndex = -1;
+
+            if (allMessages.length === 0) {
+                chatBox.innerHTML =
+                    '<div style="text-align: center; color: #666; margin-top: 50px;">عذراً، لم أتمكن من قراءة التنسيق. تأكد من الملف.</div>';
+                return;
+            }
+
+            const myName = senders[0];
+
+            allMessages.forEach((msg, index) => {
+                const isMe = msg.sender === myName;
+                const div = document.createElement("div");
+                div.className = `message ${isMe ? "me" : "other"}`;
+                div.id = `msg-${index}`;
+
+                let messageText = msg.text;
+
+                if (highlightText) {
+                    const regex = new RegExp(`(${highlightText})`, "gi");
+                    if (messageText.match(regex)) {
+                        messageText = messageText.replace(
+                            regex,
+                            '<span class="highlight">$1</span>',
+                        );
+                    }
+                }
+
+                div.innerHTML = `
+                    <span class="sender-name">${msg.sender}</span>
+                    <div class="text">${messageText}</div>
+                    <span class="timestamp">${msg.date} - ${msg.time}</span>
+                `;
+                chatBox.appendChild(div);
+            });
+
+            if (highlightText) {
+                searchResults = document.querySelectorAll(".highlight");
+                if (searchResults.length > 0) {
+                    currentSearchIndex = 0;
+                    updateSearchUI();
+                    scrollToCurrentResult();
+                } else {
+                    document.getElementById("searchCount").innerText = "0 / 0";
+                    alert("لم يتم العثور على الكلمة.");
+                }
+            } else {
+                chatBox.scrollTop = chatBox.scrollHeight;
+                document.getElementById("searchCount").innerText = "0 / 0";
+            }
+        }
+
+        // 4. نظام البحث في النصوص
+        function performTextSearch() {
+            const text = document.getElementById("searchInput").value.trim();
+            if (!text) {
+                renderMessages();
+                return;
+            }
+            renderMessages(text);
+        }
+
+        function navigateSearch(direction) {
+            if (searchResults.length === 0) return;
+            searchResults[currentSearchIndex].classList.remove("active");
+            currentSearchIndex += direction;
+            if (currentSearchIndex >= searchResults.length) currentSearchIndex = 0;
+            if (currentSearchIndex < 0)
+                currentSearchIndex = searchResults.length - 1;
+            updateSearchUI();
+            scrollToCurrentResult();
+        }
+
+        function updateSearchUI() {
+            document.getElementById("searchCount").innerText =
+                `${currentSearchIndex + 1} / ${searchResults.length}`;
+        }
+
+        function scrollToCurrentResult() {
+            const el = searchResults[currentSearchIndex];
+            el.classList.add("active");
+            el.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+
+        // 5. البحث والانتقال بالتاريخ
+        function jumpToDate() {
+            const d = document.getElementById("daySelect").value;
+            const m = document.getElementById("monthSelect").value;
+            const y = document.getElementById("yearSelect").value;
+
+            if (!d || !m || !y) {
+                alert("يرجى اختيار اليوم والشهر والسنة بالكامل.");
+                return;
+            }
+
+            const searchYear = Number(y);
+            const shortYear = searchYear % 100;
+
+            const targetIndex = allMessages.findIndex((msg) => {
+                const parts = msg.date.split(/\D+/).map(Number);
+                const hasYear =
+                    parts.includes(searchYear) || parts.includes(shortYear);
+                const hasMonth = parts.includes(Number(m));
+                const hasDay = parts.includes(Number(d));
+
+                return hasYear && hasMonth && hasDay;
+            });
+
+            if (targetIndex !== -1) {
+                const targetElement = document.getElementById(`msg-${targetIndex}`);
+                targetElement.style.boxShadow = "0 0 15px #128C7E";
+                setTimeout(
+                    () => (targetElement.style.boxShadow = "0 1px 1px rgba(0,0,0,0.1)"),
+                    2000,
+                );
+                targetElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+            } else {
+                alert("لم يتم العثور على رسائل في هذا التاريخ.");
+            }
+        }
+
+        // 6. استخراج المحادثة كملف PDF
+        function exportToPDF() {
+            const chatContainer = document.getElementById("chatBox");
+
+            const originalHeight = chatContainer.style.height;
+            const originalOverflow = chatContainer.style.overflow;
+
+            chatContainer.style.height = "auto";
+            chatContainer.style.overflow = "visible";
+
+            const opt = {
+                margin: 10,
+                filename: "WhatsApp_Archive.pdf",
+                image: {
+                    type: "jpeg",
+                    quality: 0.98,
+                },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                },
+                jsPDF: {
+                    unit: "mm",
+                    format: "a4",
+                    orientation: "portrait",
+                },
+            };
+
+            html2pdf()
+                .set(opt)
+                .from(chatContainer)
+                .save()
+                .then(() => {
+                    chatContainer.style.height = originalHeight;
+                    chatContainer.style.overflow = originalOverflow;
+                });
+        }
+    </script>
+</body>
+
+</html>
