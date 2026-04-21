@@ -3,305 +3,104 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>أرشيف محادثات الواتساب الاحترافي</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <style>
-         :root {
-            --bg-color: #efeae2;
-            --me-msg: #d9fdd3;
-            --other-msg: #ffffff;
-            --header-bg: #f0f2f5;
-            --primary: #128c7e;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        :root {
+            --bg-body: #050505;
+            --bg-container: #151515;
+            --header-bg: #1c1c1c;
+            --me-msg: #5c0f1b;
+            --other-msg: #262626;
+            --primary: #d4af37;
+            --primary-hover: #b8962d;
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --border-color: #333;
+            --highlight: #d4af37;
         }
-        
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #d1d7db;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-        }
-        
+
+        html, body { margin: 0; padding: 0; height: 100%; background-color: var(--bg-body); color: var(--text-main); font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
         .container {
-            width: 100%;
-            max-width: 900px;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-            height: 100%;
+            width: 100%; max-width: 900px; background-color: var(--bg-container); display: flex; flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.9); height: 100dvh; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);
         }
-        /* تنسيق لوحة التحكم العلوية */
+
+        .header { background-color: var(--header-bg); border-bottom: 2px solid var(--primary); z-index: 10; flex-shrink: 0; }
+
+        .tabs-nav { display: flex; width: 100%; background: #0a0a0a; }
+        .tab-btn { flex: 1; background: none; border: none; border-bottom: 3px solid transparent; color: var(--text-muted); padding: 15px 5px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .tab-btn:hover { color: var(--text-main); background: #111; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--header-bg); }
+
+        .tab-content { padding: 15px 20px; display: none; background: var(--header-bg); animation: fadeInTab 0.3s ease-in-out; }
+        .tab-content.active { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+        @keyframes fadeInTab { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        input, select { background-color: #111; color: var(--text-main); padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 14px; outline: none; flex-grow: 1; min-width: 0; }
+        input:focus, select:focus { border-color: var(--primary); }
+        input[type="file"] { padding: 9px 10px; background: #1a1a1a; cursor: pointer; }
         
-        .header {
-            background-color: var(--header-bg);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            border-bottom: 1px solid #d1d7db;
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+        button.action-btn { background-color: var(--primary); color: #000; font-weight: bold; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.2s; white-space: nowrap; }
+        button.action-btn:hover { background-color: var(--primary-hover); }
+
+        #pdfBtn { background-color: #7a1524; color: white; display: none; }
+        #pdfBtn:hover { background-color: #a31c30; }
+
+        .search-info { background: #111; padding: 12px 15px; border-radius: 6px; border: 1px solid var(--border-color); color: var(--primary); font-weight: bold; text-align: center; min-width: 80px; }
+
+        .chat-box { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 20px 20px; scroll-behavior: smooth; position: relative; }
         
-        .toolbar-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            justify-content: space-between;
-        }
+        #messagesContainer { display: flex; flex-direction: column; gap: 12px; }
+
+        .message { max-width: 85%; padding: 12px 16px; border-radius: 12px; position: relative; font-size: 15px; line-height: 1.6; word-wrap: break-word; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
+        .message.me { background: linear-gradient(135deg, var(--me-msg) 0%, #4a0c16 100%); align-self: flex-start; border-top-right-radius: 0; border: 1px solid #731722; }
+        .message.other { background: linear-gradient(135deg, var(--other-msg) 0%, #1a1a1a 100%); align-self: flex-end; border-top-left-radius: 0; border: 1px solid var(--border-color); }
+        .sender-name { font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 6px; display: block; }
+        .me .sender-name { display: none; }
+        .timestamp { font-size: 11px; color: var(--text-muted); float: left; margin-top: 8px; margin-right: 15px; direction: ltr; }
+        .me .timestamp { color: #d18894; }
         
-        .tools-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            width: 100%;
-        }
-        
-        input,
-        select,
-        button {
-            padding: 10px 12px;
-            /* تكبير الحجم قليلاً ليلائم اللمس في الموبايل */
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-        
-        button:hover {
-            background-color: #0d6b60;
-        }
-        
-        .nav-btn {
-            padding: 10px 15px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        
-        .search-info {
-            font-size: 14px;
-            color: #555;
-            min-width: 60px;
-            text-align: center;
-        }
-        /* تنسيق المحادثة */
-        
-        .chat-box {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
-            background-size: contain;
-            scroll-behavior: smooth;
-        }
-        
-        .message {
-            max-width: 75%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            position: relative;
-            font-size: 15px;
-            line-height: 1.5;
-            word-wrap: break-word;
-            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .message.me {
-            background-color: var(--me-msg);
-            align-self: flex-start;
-            border-top-right-radius: 0;
-        }
-        
-        .message.other {
-            background-color: var(--other-msg);
-            align-self: flex-end;
-            border-top-left-radius: 0;
-        }
-        
-        .sender-name {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 3px;
-            display: block;
-        }
-        
-        .me .sender-name {
-            display: none;
-        }
-        
-        .timestamp {
-            font-size: 11px;
-            color: #667781;
-            float: left;
-            margin-top: 5px;
-            margin-right: 15px;
-            direction: ltr;
-        }
-        /* تنسيق كلمات البحث */
-        
-        .highlight {
-            background-color: #ffeb3b;
-            border-radius: 3px;
-            padding: 0 2px;
-        }
-        
-        .highlight.active {
-            background-color: #ff9800;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-        }
-        
-        #pdfBtn {
-            background-color: #d32f2f;
-            display: none;
-        }
-        
-        #pdfBtn:hover {
-            background-color: #b71c1c;
-        }
-        /* تنسيق التذييل (Footer) */
-        
-        .footer {
-            background-color: var(--header-bg);
-            padding: 12px;
-            text-align: center;
-            font-size: 13px;
-            color: #555;
-            border-top: 1px solid #d1d7db;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .footer a {
-            color: #e1306c;
-            /* لون إنستجرام */
-            text-decoration: none;
-            font-size: 18px;
-            transition: transform 0.2s;
-        }
-        
-        .footer a:hover {
-            transform: scale(1.1);
-        }
-        
-        .dev-name {
-            font-weight: bold;
-            color: #333;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            direction: ltr;
-            /* لضبط اتجاه الاسم الإنجليزي */
-        }
-        /* تنسيق أزرار الطي */
-        
-        .section-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 0;
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: right;
-            font-weight: bold;
-            color: var(--primary);
-            font-size: 16px;
-        }
-        
-        .section-title:hover {
-            opacity: 0.8;
-        }
-        
-        .section-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            width: 100%;
-            max-height: 1000px;
-            overflow: hidden;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
-            opacity: 1;
-        }
-        
-        .section-content.collapsed {
-            max-height: 0;
-            opacity: 0;
-        }
-        
-        .toggle-icon {
-            font-size: 14px;
-            transition: transform 0.3s ease;
-        }
-        
-        .toggle-icon.rotated {
-            transform: rotate(180deg);
-        }
-        /* دعم الموبايل (شاشات أقل من 600px) */
-        
+        .highlight { background-color: var(--highlight); color: #000; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+
+        .scroll-anchor { height: 1px; width: 100%; flex-shrink: 0; opacity: 0; }
+
+        /* تعديل تصميم الفوتر بناءً على طلبك */
+        .footer { background-color: var(--header-bg); padding: 15px; text-align: center; font-size: 14px; color: var(--text-muted); border-top: 1px solid var(--border-color); flex-shrink: 0; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .footer .dev-name { font-weight: bold; color: var(--text-main); display: inline-flex; align-items: center; gap: 8px; }
+        .footer a { color: var(--primary); font-size: 20px; text-decoration: none; transition: transform 0.3s ease, color 0.3s ease; display: inline-flex; align-items: center; }
+        .footer a:hover { color: #fff; transform: scale(1.1); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-content { background: var(--bg-container); padding: 25px; border-radius: 12px; border: 1px solid var(--primary); text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8); max-width: 90%; width: 350px; }
+        .modal-content h3 { color: var(--primary); margin-top: 0; margin-bottom: 15px; }
+
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .sender-btn { background: #222; color: var(--text-main); border: 1px solid var(--border-color); padding: 12px; margin-top: 10px; width: 100%; font-size: 16px; cursor: pointer; border-radius: 6px; }
+        .sender-btn:hover { background: var(--primary); color: #000; }
+
         @media (max-width: 600px) {
-            .tools-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .tools-group input[type="text"],
-            .tools-group select,
-            .tools-group button {
-                width: 100%;
-            }
-            .toolbar-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            #fileInput {
-                width: 100%;
-            }
-            .nav-group {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-                margin-top: 5px;
-            }
-            .nav-group button {
-                flex-grow: 1;
-                margin: 0 5px;
-            }
-            .message {
-                max-width: 90%;
-                /* تكبير عرض الرسالة في الموبايل */
-            }
-            .chat-box {
-                padding: 10px;
-            }
+            .tab-content.active { flex-direction: column; align-items: stretch; }
+            .action-btn, input, select { width: 100%; }
+            .message { max-width: 95%; }
         }
     </style>
 </head>
@@ -309,137 +108,149 @@
 <body>
     <div class="container">
         <div class="header">
-            <!-- قسم الملف والتحميل -->
-            <div class="toolbar-row">
-                <button class="section-title" onclick="toggleSection('fileSection', this)">
-            <span class="toggle-icon">▼</span>
-            <span>الملف والتحميل</span>
-          </button>
-            </div>
-            <div class="section-content" id="fileSection">
-                <input type="file" id="fileInput" accept=".txt" />
-                <button id="pdfBtn" onclick="exportToPDF()">
-            <i class="fas fa-file-pdf"></i> تحميل كـ PDF
-          </button>
+            <div class="tabs-nav">
+                <button class="tab-btn active" onclick="openTab(event, 'tab-upload')"><i class="fas fa-file-upload"></i> الملف</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-search')"><i class="fas fa-search"></i> البحث</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-date')"><i class="far fa-calendar-alt"></i> التاريخ</button>
             </div>
 
-            <!-- قسم البحث -->
-            <div class="toolbar-row">
-                <button class="section-title" onclick="toggleSection('searchSection', this)">
-            <span class="toggle-icon">▼</span>
-            <span>البحث</span>
-          </button>
+            <div id="tab-upload" class="tab-content active">
+                <input type="file" id="fileInput" accept=".txt" />
+                <button id="pdfBtn" class="action-btn" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> استخراج PDF</button>
             </div>
-            <div class="section-content" id="searchSection">
-                <input type="text" id="searchInput" placeholder="ابحث في الكلمات..." />
-                <button onclick="performTextSearch()">
-            <i class="fas fa-search"></i> بحث
-          </button>
-                <div class="nav-group">
-                    <span class="search-info" id="searchCount">0 / 0</span>
-                    <button class="nav-btn" onclick="navigateSearch(-1)">
-              <i class="fas fa-arrow-up"></i>
-            </button>
-                    <button class="nav-btn" onclick="navigateSearch(1)">
-              <i class="fas fa-arrow-down"></i>
-            </button>
+
+            <div id="tab-search" class="tab-content">
+                <input type="text" id="searchInput" placeholder="ابحث في المحادثة بالكامل..." />
+                <button class="action-btn" onclick="performSearch()"><i class="fas fa-search"></i> بحث</button>
+                <div style="display: flex; gap: 8px; width: 100%; margin-top: 5px;">
+                    <span class="search-info" id="searchCount" style="flex: 1;">0 / 0</span>
+                    <button class="action-btn" onclick="navigateSearch(-1)" style="flex: 1;"><i class="fas fa-chevron-up"></i></button>
+                    <button class="action-btn" onclick="navigateSearch(1)" style="flex: 1;"><i class="fas fa-chevron-down"></i></button>
                 </div>
             </div>
 
-            <!-- قسم التاريخ -->
-            <div class="toolbar-row">
-                <button class="section-title" onclick="toggleSection('dateSection', this)">
-            <span class="toggle-icon">▼</span>
-            <span>الانتقال للتاريخ</span>
-          </button>
-            </div>
-            <div class="section-content" id="dateSection">
-                <select id="daySelect">
-            <option value="">اليوم</option>
-          </select>
-                <select id="monthSelect">
-            <option value="">الشهر</option>
-          </select>
-                <select id="yearSelect">
-            <option value="">السنة</option>
-          </select>
-                <button onclick="jumpToDate()">
-            <i class="far fa-calendar-alt"></i> انتقال للتاريخ
-          </button>
+            <div id="tab-date" class="tab-content">
+                <div style="display: flex; gap: 5px; width: 100%;">
+                    <select id="daySelect" style="flex: 1;"><option value="">اليوم</option></select>
+                    <select id="monthSelect" style="flex: 1;"><option value="">الشهر</option></select>
+                    <input type="number" id="yearInput" placeholder="السنة (مثال: 26)" style="flex: 1; min-width: 0;" />
+                </div>
+                <button class="action-btn" onclick="jumpToDate()" style="margin-top: 10px; width: 100%;"><i class="fas fa-location-arrow"></i> انتقال للتاريخ</button>
             </div>
         </div>
 
         <div class="chat-box" id="chatBox">
-            <div style="text-align: center; color: #666; margin-top: 50px">
-                قم برفع ملف المحادثة (.txt) لتبدأ
+            <div id="topAnchor" class="scroll-anchor"></div>
+            <div id="messagesContainer">
+                <div id="welcomeMsg" style="text-align: center; color: var(--text-muted); margin-top: 50px; padding: 20px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px; display: block;"></i>
+                    ارفع ملف المحادثة (.txt) الكبير للبدء بسلاسة
+                </div>
             </div>
+            <div id="bottomAnchor" class="scroll-anchor"></div>
         </div>
 
         <div class="footer">
-            <span>Designed and Developed by</span>
-            <span class="dev-name">Abdelrahman Tarek</span>
-            <a href="https://www.instagram.com/theboda_?igsh=MTZjMGp5cWk3d3B1ag==" target="_blank" title="Instagram">
-                <i class="fab fa-instagram"></i>
-            </a>
+            <span>Designed & Developed by</span> 
+            <span class="dev-name">
+                Abdelrahman Tarek
+                <a href="https://www.instagram.com/theboda_?igsh=MTZjMGp5cWk3d3B1ag==" target="_blank" title="Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </span>
+        </div>
+    </div>
+
+    <div id="printContainer" style="position: absolute; left: -9999px; top: 0; width: 800px; background: #141414; color: #fff; padding: 20px; z-index: -100;"></div>
+
+    <div class="modal-overlay" id="loadingModal">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <h3 id="loadingTitle">جاري العمل...</h3>
+            <p id="loadingDesc" style="color: var(--text-muted); font-size: 14px;">يرجى الانتظار، قد يستغرق الأمر بعض الوقت.</p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="senderModal">
+        <div class="modal-content">
+            <h3><i class="fas fa-user-circle"></i> أنت مين فيهم؟</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">اختر اسمك لتمييز رسائلك.</p>
+            <div id="senderButtonsContainer"></div>
         </div>
     </div>
 
     <script>
         let allMessages = [];
         let senders = [];
-        let searchResults = [];
-        let currentSearchIndex = -1;
+        let myName = "";
+        
+        let startIndex = 0;
+        let endIndex = 0;
+        const CHUNK_SIZE = 60;
+        let currentHighlightText = "";
 
-        // دالة الطي/الفتح
-        function toggleSection(sectionId, button) {
-            const section = document.getElementById(sectionId);
-            const icon = button.querySelector(".toggle-icon");
+        let searchResultsIndices = [];
+        let currentSearchPosition = -1;
 
-            section.classList.toggle("collapsed");
-            icon.classList.toggle("rotated");
-        }
-
-        // إعداد قوائم التاريخ
         window.onload = function() {
             const daySel = document.getElementById("daySelect");
             const monthSel = document.getElementById("monthSelect");
-            const yearSel = document.getElementById("yearSelect");
-
-            for (let i = 1; i <= 31; i++)
-                daySel.innerHTML += `<option value="${i}">${i}</option>`;
-            for (let i = 1; i <= 12; i++)
-                monthSel.innerHTML += `<option value="${i}">${i}</option>`;
-            for (let i = 2015; i <= new Date().getFullYear() + 5; i++)
-                yearSel.innerHTML += `<option value="${i}">${i}</option>`;
+            for (let i = 1; i <= 31; i++) daySel.innerHTML += `<option value="${i}">${i}</option>`;
+            for (let i = 1; i <= 12; i++) monthSel.innerHTML += `<option value="${i}">${i}</option>`;
         };
 
-        // 1. قراءة الملف
-        document
-            .getElementById("fileInput")
-            .addEventListener("change", function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
 
+        function showModal(id, title = "", desc = "") {
+            const modal = document.getElementById(id);
+            if(title) document.getElementById('loadingTitle').innerText = title;
+            if(desc) document.getElementById('loadingDesc').innerText = desc;
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function hideModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        document.getElementById("fileInput").addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            showModal('loadingModal', 'جاري تجهيز الملف...', 'جاري تحليل الأسطر، برجاء الانتظار...');
+            
+            setTimeout(() => {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    parseWhatsAppText(e.target.result);
-                    renderMessages();
-                    document.getElementById("pdfBtn").style.display = "block";
+                reader.onload = function(evt) {
+                    parseWhatsAppText(evt.target.result);
+                    hideModal('loadingModal');
+                    if (senders.length > 0) {
+                        showSenderSelection();
+                    } else {
+                        initChat();
+                    }
                 };
                 reader.readAsText(file);
-            });
+            }, 100);
+        });
 
-        // 2. تحليل النص
         function parseWhatsAppText(text) {
             allMessages = [];
             senders = [];
             const lines = text.split("\n");
             let currentMsg = null;
+            // التعرف على التاريخ بدقة عالية
+            const regex = /(?:^|\]\s*)\[?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})[,\]\s]+(.*?(?:AM|PM|am|pm|\u202F[AP]M)?)(?:\s*-\s*|\s*\]\s*)(.*?):\s(.*)/;
 
-            const regex =
-                /^\[?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})[,\]\s]+(.*?(?:AM|PM|am|pm|\u202F[AP]M)?)(?:\s*-\s*|\s*\]\s*)(.*?):\s(.*)/;
-
-            lines.forEach((line) => {
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
                 const match = line.match(regex);
                 if (match) {
                     if (currentMsg) allMessages.push(currentMsg);
@@ -450,184 +261,273 @@
                         date: match[1].trim(),
                         time: match[2].trim(),
                         sender: sender,
-                        text: match[4].trim(),
+                        text: match[4].trim()
                     };
                 } else if (currentMsg && line.trim() !== "") {
                     currentMsg.text += "\n" + line.trim();
                 }
-            });
+            }
             if (currentMsg) allMessages.push(currentMsg);
         }
 
-        // 3. تصيير الرسائل
-        function renderMessages(highlightText = "") {
-            const chatBox = document.getElementById("chatBox");
-            chatBox.innerHTML = "";
-            currentSearchIndex = -1;
+        function showSenderSelection() {
+            const container = document.getElementById("senderButtonsContainer");
+            container.innerHTML = "";
+            senders.forEach((sender) => {
+                const btn = document.createElement("button");
+                btn.className = "sender-btn";
+                btn.innerHTML = `<i class="fas fa-user"></i> ${sender}`;
+                btn.onclick = () => {
+                    myName = sender;
+                    hideModal('senderModal');
+                    document.getElementById("pdfBtn").style.display = "flex";
+                    initChat();
+                };
+                container.appendChild(btn);
+            });
+            showModal('senderModal');
+        }
 
+        function initChat() {
+            const welcomeMsg = document.getElementById("welcomeMsg");
+            if (welcomeMsg) welcomeMsg.remove();
+            
             if (allMessages.length === 0) {
-                chatBox.innerHTML =
-                    '<div style="text-align: center; color: #666; margin-top: 50px;">عذراً، لم أتمكن من قراءة التنسيق. تأكد من الملف.</div>';
+                document.getElementById("messagesContainer").innerHTML = '<div style="text-align:center; color:#ff6b6b; padding:20px;">تنسيق الملف غير مدعوم أو فارغ.</div>';
+                return;
+            }
+            jumpToMessage(0);
+        }
+
+        function createMessageHTML(msg, index, highlightText) {
+            const isMe = msg.sender === myName;
+            const div = document.createElement("div");
+            div.className = `message ${isMe ? "me" : "other"}`;
+            div.id = `msg-${index}`;
+
+            let safeText = msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+            
+            if (highlightText) {
+                const regex = new RegExp(`(${highlightText})`, "gi");
+                safeText = safeText.replace(regex, '<span class="highlight">$1</span>');
+            }
+
+            div.innerHTML = `
+                <span class="sender-name">${msg.sender}</span>
+                <div class="text">${safeText}</div>
+                <span class="timestamp">${msg.date} • ${msg.time}</span>
+                <div style="clear: both;"></div>
+            `;
+            return div;
+        }
+
+        function jumpToMessage(targetIndex, highlight = "") {
+            currentHighlightText = highlight;
+            const container = document.getElementById("messagesContainer");
+            
+            startIndex = Math.max(0, targetIndex - Math.floor(CHUNK_SIZE / 2));
+            endIndex = Math.min(allMessages.length, startIndex + CHUNK_SIZE);
+            
+            container.innerHTML = "";
+            const fragment = document.createDocumentFragment();
+            for (let i = startIndex; i < endIndex; i++) {
+                fragment.appendChild(createMessageHTML(allMessages[i], i, currentHighlightText));
+            }
+            container.appendChild(fragment);
+
+            if (targetIndex >= 0) {
+                setTimeout(() => {
+                    const targetEl = document.getElementById(`msg-${targetIndex}`);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                        targetEl.style.outline = "2px solid var(--primary)";
+                        targetEl.style.boxShadow = "0 0 20px var(--primary)";
+                        setTimeout(() => {
+                            targetEl.style.outline = "none";
+                            targetEl.style.boxShadow = "0 4px 6px rgba(0,0,0,0.3)";
+                        }, 2500);
+                    }
+                }, 50);
+            }
+        }
+
+        const bottomObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && endIndex < allMessages.length) {
+                const container = document.getElementById("messagesContainer");
+                const newEnd = Math.min(allMessages.length, endIndex + Math.floor(CHUNK_SIZE / 2));
+                const fragment = document.createDocumentFragment();
+                
+                for (let i = endIndex; i < newEnd; i++) {
+                    fragment.appendChild(createMessageHTML(allMessages[i], i, currentHighlightText));
+                }
+                container.appendChild(fragment);
+                endIndex = newEnd;
+            }
+        }, { root: document.getElementById('chatBox'), threshold: 0.1 });
+
+        const topObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && startIndex > 0) {
+                const container = document.getElementById("messagesContainer");
+                const chatBox = document.getElementById("chatBox");
+                
+                const newStart = Math.max(0, startIndex - Math.floor(CHUNK_SIZE / 2));
+                const fragment = document.createDocumentFragment();
+                
+                for (let i = newStart; i < startIndex; i++) {
+                    fragment.appendChild(createMessageHTML(allMessages[i], i, currentHighlightText));
+                }
+                
+                const oldScrollHeight = chatBox.scrollHeight;
+                const oldScrollTop = chatBox.scrollTop;
+                
+                container.insertBefore(fragment, container.firstChild);
+                startIndex = newStart;
+                
+                chatBox.scrollTop = oldScrollTop + (chatBox.scrollHeight - oldScrollHeight);
+            }
+        }, { root: document.getElementById('chatBox'), threshold: 0.1 });
+
+        bottomObserver.observe(document.getElementById("bottomAnchor"));
+        topObserver.observe(document.getElementById("topAnchor"));
+
+        function performSearch() {
+            const text = document.getElementById("searchInput").value.trim();
+            if (!text) {
+                currentHighlightText = "";
+                searchResultsIndices = [];
+                currentSearchPosition = -1;
+                document.getElementById("searchCount").innerText = "0 / 0";
+                jumpToMessage(0); 
                 return;
             }
 
-            const myName = senders[0];
-
-            allMessages.forEach((msg, index) => {
-                const isMe = msg.sender === myName;
-                const div = document.createElement("div");
-                div.className = `message ${isMe ? "me" : "other"}`;
-                div.id = `msg-${index}`;
-
-                let messageText = msg.text;
-
-                if (highlightText) {
-                    const regex = new RegExp(`(${highlightText})`, "gi");
-                    if (messageText.match(regex)) {
-                        messageText = messageText.replace(
-                            regex,
-                            '<span class="highlight">$1</span>',
-                        );
+            showModal('loadingModal', 'جاري البحث...', 'يتم الآن فحص المحادثة بالكامل.');
+            
+            setTimeout(() => {
+                const lowerText = text.toLowerCase();
+                searchResultsIndices = [];
+                
+                for (let i = 0; i < allMessages.length; i++) {
+                    if (allMessages[i].text.toLowerCase().includes(lowerText)) {
+                        searchResultsIndices.push(i);
                     }
                 }
 
-                div.innerHTML = `
-                    <span class="sender-name">${msg.sender}</span>
-                    <div class="text">${messageText}</div>
-                    <span class="timestamp">${msg.date} - ${msg.time}</span>
-                `;
-                chatBox.appendChild(div);
-            });
-
-            if (highlightText) {
-                searchResults = document.querySelectorAll(".highlight");
-                if (searchResults.length > 0) {
-                    currentSearchIndex = 0;
-                    updateSearchUI();
-                    scrollToCurrentResult();
+                hideModal('loadingModal');
+                
+                if (searchResultsIndices.length > 0) {
+                    currentSearchPosition = 0;
+                    document.getElementById("searchCount").innerText = `1 / ${searchResultsIndices.length}`;
+                    jumpToMessage(searchResultsIndices[0], text);
                 } else {
                     document.getElementById("searchCount").innerText = "0 / 0";
-                    alert("لم يتم العثور على الكلمة.");
+                    currentHighlightText = "";
+                    alert("لم يتم العثور على الكلمة المطلوبة.");
                 }
-            } else {
-                chatBox.scrollTop = chatBox.scrollHeight;
-                document.getElementById("searchCount").innerText = "0 / 0";
-            }
+            }, 100);
         }
 
-        // 4. نظام البحث في النصوص
-        function performTextSearch() {
-            const text = document.getElementById("searchInput").value.trim();
-            if (!text) {
-                renderMessages();
-                return;
-            }
-            renderMessages(text);
+        function navigateSearch(dir) {
+            if (searchResultsIndices.length === 0) return;
+            currentSearchPosition += dir;
+            
+            if (currentSearchPosition >= searchResultsIndices.length) currentSearchPosition = 0;
+            if (currentSearchPosition < 0) currentSearchPosition = searchResultsIndices.length - 1;
+            
+            document.getElementById("searchCount").innerText = `${currentSearchPosition + 1} / ${searchResultsIndices.length}`;
+            jumpToMessage(searchResultsIndices[currentSearchPosition], currentHighlightText);
         }
 
-        function navigateSearch(direction) {
-            if (searchResults.length === 0) return;
-            searchResults[currentSearchIndex].classList.remove("active");
-            currentSearchIndex += direction;
-            if (currentSearchIndex >= searchResults.length) currentSearchIndex = 0;
-            if (currentSearchIndex < 0)
-                currentSearchIndex = searchResults.length - 1;
-            updateSearchUI();
-            scrollToCurrentResult();
-        }
-
-        function updateSearchUI() {
-            document.getElementById("searchCount").innerText =
-                `${currentSearchIndex + 1} / ${searchResults.length}`;
-        }
-
-        function scrollToCurrentResult() {
-            const el = searchResults[currentSearchIndex];
-            el.classList.add("active");
-            el.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-            });
-        }
-
-        // 5. البحث والانتقال بالتاريخ
+        // ==========================================
+        // خوارزمية البحث المتقدم عن التاريخ (بدون أخطاء)
+        // ==========================================
         function jumpToDate() {
             const d = document.getElementById("daySelect").value;
             const m = document.getElementById("monthSelect").value;
-            const y = document.getElementById("yearSelect").value;
+            const y = document.getElementById("yearInput").value.trim();
 
             if (!d || !m || !y) {
-                alert("يرجى اختيار اليوم والشهر والسنة بالكامل.");
+                alert("يرجى إدخال اليوم والشهر والسنة بالكامل.");
                 return;
             }
 
-            const searchYear = Number(y);
-            const shortYear = searchYear % 100;
+            const searchMonth = Number(m);
+            const searchDay = Number(d);
+            const searchYear = Number(y) % 100; // هيحول 2026 أو 26 إلى 26 عشان يطابق الواتساب
 
             const targetIndex = allMessages.findIndex((msg) => {
-                const parts = msg.date.split(/\D+/).map(Number);
-                const hasYear =
-                    parts.includes(searchYear) || parts.includes(shortYear);
-                const hasMonth = parts.includes(Number(m));
-                const hasDay = parts.includes(Number(d));
+                // تقسيم التاريخ (مثلاً 7/17/25 هيتحول إلى المصفوفة [7, 17, 25])
+                const parts = msg.date.split(/\D+/).filter(Boolean).map(Number);
+                
+                if (parts.length >= 3) {
+                    // الواتساب بيحط السنة في الآخر أو في الأول
+                    const isYearFirst = parts[0] > 1000; 
+                    const msgYear = isYearFirst ? parts[0] % 100 : parts[2] % 100;
+                    
+                    if (msgYear !== searchYear) return false;
 
-                return hasYear && hasMonth && hasDay;
+                    // استخراج اليوم والشهر من الأجزاء المتبقية
+                    const p1 = isYearFirst ? parts[1] : parts[0];
+                    const p2 = isYearFirst ? parts[2] : parts[1];
+                    
+                    // المقارنة سواء كان التنسيق شهر/يوم أو يوم/شهر
+                    return (p1 === searchDay && p2 === searchMonth) || (p1 === searchMonth && p2 === searchDay);
+                }
+                return false;
             });
 
             if (targetIndex !== -1) {
-                const targetElement = document.getElementById(`msg-${targetIndex}`);
-                targetElement.style.boxShadow = "0 0 15px #128C7E";
-                setTimeout(
-                    () => (targetElement.style.boxShadow = "0 1px 1px rgba(0,0,0,0.1)"),
-                    2000,
-                );
-                targetElement.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                });
+                jumpToMessage(targetIndex);
             } else {
                 alert("لم يتم العثور على رسائل في هذا التاريخ.");
             }
         }
 
-        // 6. استخراج المحادثة كملف PDF
         function exportToPDF() {
-            const chatContainer = document.getElementById("chatBox");
+            if (allMessages.length === 0) return;
+            
+            showModal('loadingModal', 'جاري إنشاء الـ PDF...', 'جاري تحويل الرسائل المعروضة حالياً لتجنب إيقاف المتصفح.');
 
-            const originalHeight = chatContainer.style.height;
-            const originalOverflow = chatContainer.style.overflow;
+            setTimeout(() => {
+                const printContainer = document.getElementById('printContainer');
+                printContainer.innerHTML = ""; 
 
-            chatContainer.style.height = "auto";
-            chatContainer.style.overflow = "visible";
+                let htmlString = `<h2 style="color:#d4af37; text-align:center; font-family: sans-serif;">أرشيف محادثة الواتساب</h2><hr style="border-color:#333; margin-bottom:20px;">`;
+                
+                for (let i = startIndex; i < endIndex; i++) {
+                    const msg = allMessages[i];
+                    const isMe = msg.sender === myName;
+                    let text = msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+                    
+                    htmlString += `
+                        <div style="max-width: 90%; margin-bottom: 15px; page-break-inside: avoid; border: 1px solid ${isMe ? '#731722' : '#333'}; padding: 10px; border-radius: 8px; background: ${isMe ? '#4a0c16' : '#262626'}; margin-${isMe ? 'right' : 'left'}: auto;">
+                            <strong style="color:#d4af37; font-size:12px;">${msg.sender}</strong><br>
+                            <div style="font-size: 14px; line-height: 1.5; margin-top: 5px;">${text}</div>
+                            <div style="font-size:10px; color:#aaa; margin-top: 8px; text-align: left;" dir="ltr">${msg.date} • ${msg.time}</div>
+                        </div>
+                    `;
+                }
 
-            const opt = {
-                margin: 10,
-                filename: "WhatsApp_Archive.pdf",
-                image: {
-                    type: "jpeg",
-                    quality: 0.98,
-                },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                },
-                jsPDF: {
-                    unit: "mm",
-                    format: "a4",
-                    orientation: "portrait",
-                },
-            };
+                printContainer.innerHTML = htmlString;
 
-            html2pdf()
-                .set(opt)
-                .from(chatContainer)
-                .save()
-                .then(() => {
-                    chatContainer.style.height = originalHeight;
-                    chatContainer.style.overflow = originalOverflow;
+                const opt = {
+                    margin: 10,
+                    filename: "WhatsApp_Archive.pdf",
+                    image: { type: "jpeg", quality: 0.95 },
+                    html2canvas: { scale: 1.5, useCORS: true, backgroundColor: "#141414" },
+                    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+                };
+
+                html2pdf().set(opt).from(printContainer).save().then(() => {
+                    hideModal('loadingModal');
+                    printContainer.innerHTML = ""; 
+                }).catch(err => {
+                    hideModal('loadingModal');
+                    alert("حدث خطأ أثناء الإنشاء، قد يكون الملف كبيراً جداً.");
                 });
+
+            }, 100);
         }
     </script>
 </body>
-
 </html>
